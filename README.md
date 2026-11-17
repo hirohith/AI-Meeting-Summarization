@@ -1,65 +1,59 @@
-# 🎙️ AI-Based Meeting Summarization & Action Item Tracking System
+# 🤖 AI-Based Meeting Summarization & Action Item Tracking System
 
-An AI-powered meeting assistant that converts meeting recordings and text transcripts into structured summaries, decisions, and actionable tasks.
+## 📌 Overview
 
-The application uses **faster-whisper** for audio transcription, **Google Gemini** for meeting analysis, **Streamlit** for the interactive interface, and **SQLite** for persistent meeting storage.
+The **AI-Based Meeting Summarization & Action Item Tracking System** is an AI-powered Streamlit web application that converts meeting recordings and text transcripts into structured meeting summaries.
+
+The application uses **Whisper** for speech-to-text transcription and **Google Gemini AI** to identify important discussion points, key decisions, and actionable tasks.
+
+It also provides meeting history, action item tracking, and report export functionality, helping users manage meeting information efficiently.
 
 ## ✨ Features
 
-- 🎧 **Audio Transcription:** Transcribe meeting recordings using faster-whisper.
-- 📝 **Transcript Input:** Paste or edit meeting transcripts manually.
-- 🤖 **AI Meeting Summarization:** Generate concise meeting summaries using Gemini.
-- 💡 **Discussion Points & Decisions:** Extract key discussion points and decisions.
-- ✅ **Action Item Extraction:** Identify tasks, owners, deadlines, and statuses.
-- 🔍 **Action Item Tracking:** Search, edit, and update action items.
-- 💾 **Persistent Storage:** Store meetings and action-item updates in SQLite.
-- 🕘 **Meeting History:** Browse and load previously saved meetings.
-- 📊 **Report Export:** Download reports in CSV, JSON, and PDF formats.
+- 🎙️ **Audio Upload:** Upload meeting recordings in MP3, WAV, and M4A formats.
+- 📝 **Speech-to-Text Transcription:** Convert audio recordings into text using OpenAI Whisper.
+- ✍️ **Manual Transcript Input:** Enter or edit meeting transcripts manually.
+- 🤖 **AI-Powered Summarization:** Generate structured meeting summaries using Google Gemini.
+- 💬 **Discussion Points:** Automatically extract important discussion topics.
+- ✅ **Decision Extraction:** Identify key decisions made during meetings.
+- 📋 **Action Item Tracking:** Extract, search, and edit assigned tasks.
+- 📚 **Meeting History:** Save and access previously processed meetings.
+- 📊 **Report Export:** Export meeting reports in CSV, JSON, and PDF formats.
 
-## 🛠️ Tech Stack
+## 🛠️ Technologies Used
 
-| Component | Technology |
+| Technology | Purpose |
 |---|---|
-| Programming Language | Python |
-| User Interface | Streamlit |
-| Audio Transcription | faster-whisper |
-| AI Summarization | Google Gemini API |
-| Data Processing | Pandas |
-| Database | SQLite |
-| PDF Generation | ReportLab |
-| Environment Variables | python-dotenv |
+| Python | Application development |
+| Streamlit | Web application interface |
+| Whisper | Audio transcription |
+| Google Gemini AI | AI-based summarization and information extraction |
+| SQLite | Database management |
+| Pandas | Data handling and processing |
+| ReportLab | PDF report generation |
 
-## 🔄 Application Workflow
-
-1. Upload a meeting recording or enter a transcript.
-2. Transcribe audio using faster-whisper, if an audio file is provided.
-3. Review or edit the transcript.
-4. Send the transcript to Gemini for analysis.
-5. Generate the meeting summary, decisions, and action items.
-6. Edit and track action items through the application.
-7. Save meeting data and changes in SQLite.
-8. Browse previous meetings and export reports.
-
-## 📁 Project Structure
+## 📂 Project Structure
 
 ```text
-AI-Meeting-Summarization/
+meeting-ai-assistant/
+│
 ├── app.py
 ├── requirements.txt
-├── .gitignore
-├── src/
-│   ├── database.py
-│   ├── summarization.py
-│   └── transcription.py
-└── data/
-    └── meetings.db
+├── README.md
+│
+└── src/
+    ├── database.py
+    ├── transcription.py
+    └── summarization.py
 ```
 
-> The `data/` directory and SQLite database are created locally when the application runs. They are excluded from the GitHub repository.
+## ⚙️ Installation and Setup
 
-## 🚀 Installation and Setup
+### 1. Install Python
 
-### 1. Clone the Repository
+Install Python 3.9 or a compatible version.
+
+### 2. Clone the Repository
 
 ```bash
 git clone https://github.com/hirohith/AI-Meeting-Summarization.git
@@ -71,76 +65,103 @@ Navigate to the project directory:
 cd AI-Meeting-Summarization
 ```
 
-### 2. Create a Virtual Environment
+### 3. Create a Virtual Environment
 
 ```bash
 python -m venv .venv
 ```
 
-Activate the environment on Windows:
+Activate the virtual environment.
+
+**Windows:**
 
 ```bash
 .venv\Scripts\activate
 ```
 
-### 3. Install Dependencies
+**Linux / macOS:**
+
+```bash
+source .venv/bin/activate
+```
+
+### 4. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure the Gemini API Key
+### 5. Configure Gemini API Key
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root directory.
+
+Add your Gemini API key:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key
 ```
 
-Replace `your_gemini_api_key` with your own Gemini API key.
+Replace `your_gemini_api_key` with your valid API key.
 
-**Important:** Keep your API key private. Do not upload the `.env` file to GitHub.
+> ⚠️ **Security Note:** Never upload your `.env` file or expose your API key on GitHub.
 
-### 5. Run the Application
+### 6. Run the Application
 
 ```bash
 streamlit run app.py
 ```
 
-The application will open in your browser.
+The application will open automatically in your default browser.
 
-## 📤 Report Export
+## 🚀 How to Use
 
-The application supports downloading:
+1. Open the **Meeting Overview** page.
+2. Select your preferred input method:
+   - Audio Recording
+   - Text Transcript
+3. Upload an audio recording or enter a transcript manually.
+4. If using audio, click **Transcribe Audio** to generate the transcript.
+5. Review and edit the transcript if necessary.
+6. Click **Generate Meeting Summary**.
+7. View the generated:
+   - Meeting Summary
+   - Discussion Points
+   - Key Decisions
+   - Action Items
+8. Navigate to **Action Items** to search and edit tasks.
+9. Open **Meeting History** to access previously saved meetings.
+10. Navigate to **Export Reports** to download meeting information in CSV, JSON, or PDF format.
 
-- **CSV:** Action-item data for spreadsheet analysis.
-- **JSON:** Structured meeting analysis data.
-- **PDF:** A readable meeting report containing the summary, decisions, and action items.
+## 🗄️ Database
 
-## ⚠️ Limitations
+The application uses **SQLite** to store meeting-related information.
 
-- Transcription accuracy may vary depending on audio quality, background noise, accents, and speaker overlap.
-- Gemini may occasionally extract incorrect task owners, deadlines, or decisions. Review generated results before relying on them.
-- AI summarization requires a valid Gemini API key and internet access.
-- The application is a prototype and is not designed for production-scale deployment.
-- Meeting data is stored in a local SQLite database.
+The database maintains:
 
-## 🔮 Future Improvements
+- Meeting transcripts
+- Generated summaries
+- Discussion points
+- Key decisions
+- Extracted action items
 
-- Speaker identification and diarization.
-- Improved task-owner and deadline validation.
-- Meeting title and metadata customization.
-- User authentication and access control.
-- Cloud database integration.
-- Deployment for multi-user access.
+The database is initialized automatically when the application runs. A new database is created if no existing database file is found.
+
+## 🔑 Requirements and Notes
+
+- A valid Google Gemini API key is required for AI-based summarization.
+- Audio transcription requires Whisper and may need additional system dependencies.
+- Supported audio formats: MP3, WAV, and M4A.
+- Internet connectivity is required for Gemini API access.
+- The project is developed as a prototype and demonstration application.
+- Avoid including confidential meeting recordings, API keys, or private information in the shared repository.
 
 ## 👨‍💻 Author
 
-**Rohith Sheru**
+**Sheru Rohith**
 
 - GitHub: [@hirohith](https://github.com/hirohith)
-- Project Repository: [AI-Meeting-Summarization](https://github.com/hirohith/AI-Meeting-Summarization)
+- LinkedIn: [Sheru Rohith](https://linkedin.com/in/sheru-rohith-535b5432b)
 
-## 📄 License
+---
 
-This project is intended for educational and portfolio purposes.
+⭐ If you find this project useful, consider giving the repository a star!
