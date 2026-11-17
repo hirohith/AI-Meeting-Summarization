@@ -17,40 +17,19 @@ from src.database import (
 
 from src.transcription import transcribe_audio
 from src.summarization import summarize_meeting
-from src.database import (
-    initialize_db,
-    save_meeting,
-    update_action_items,
-    load_latest_meeting
-)
-# Initialize SQLite database
-initialize_db()
-# Restore the latest saved meeting after a refresh
-if "meeting_result" not in st.session_state:
-    saved_meeting = load_latest_meeting()
-
-    if saved_meeting:
-        st.session_state["meeting_result"] = {
-            "meeting_summary": saved_meeting.get("summary", ""),
-            "discussion_points": [],
-            "decisions": saved_meeting.get("decisions", []),
-            "action_items": saved_meeting.get("action_items", [])
-        }
-
-        st.session_state["meeting_id"] = saved_meeting["id"]
-        st.session_state["transcript"] = saved_meeting.get(
-            "transcript", ""
-        )
-        st.session_state["action_items_data"] = saved_meeting.get(
-            "action_items", []
-        )
-
 
 st.set_page_config(
     page_title="Meeting AI Assistant",
     page_icon="🎙️",
     layout="wide"
 )
+
+
+# Initialize SQLite database
+initialize_db()
+
+
+
 
 
 st.title("AI-Based Meeting Summarization")
@@ -83,6 +62,15 @@ page = st.sidebar.radio(
 # ---------------- MEETING OVERVIEW ----------------
 
 if page == "Meeting Overview":
+
+    if st.session_state.get("new_meeting_requested", False):
+        st.session_state.pop("meeting_result", None)
+        st.session_state.pop("meeting_id", None)
+        st.session_state.pop("transcript", None)
+        st.session_state.pop("editable_transcript", None)
+        st.session_state.pop("action_items_data", None)
+
+        st.session_state["new_meeting_requested"] = False
 
     st.header("Meeting Input")
 
@@ -120,13 +108,18 @@ if page == "Meeting Overview":
                             audio_file
                         )
 
-                        st.session_state["transcript"] = (
-                            transcript
-                        )
+                        st.session_state["transcript"] = transcript
+
+# Synchronize the actual Streamlit text-area widget state
+                        st.session_state["editable_transcript"] = transcript
 
                         st.success(
                             "Transcription completed!"
                         )
+                        # Remove previous meeting results so they aren't shown for new input
+                        st.session_state.pop("meeting_result", None)
+                        st.session_state.pop("meeting_id", None)
+                        st.session_state.pop("action_items_data", None)
 
                     except Exception as e:
 
@@ -204,10 +197,24 @@ if page == "Meeting Overview":
                             transcript=edited_transcript,
                             summary=result.get("meeting_summary", ""),
                             decisions=result.get("decisions", []),
-                            action_items=result.get("action_items", [])
+                            action_items=result.get("action_items", []),
+                            discussion_points=result.get("discussion_points", [])
                         )
 
+                        # Update session state with the NEW meeting
+                        st.session_state["meeting_result"] = {
+                            "meeting_summary": result.get("meeting_summary", ""),
+                            "discussion_points": result.get("discussion_points", []),
+                            "decisions": result.get("decisions", []),
+                            "action_items": result.get("action_items", [])
+                        }
+
                         st.session_state["meeting_id"] = meeting_id
+                        st.session_state["transcript"] = edited_transcript
+
+                        st.session_state["action_items_data"] = result.get(
+                            "action_items", []
+                        )
 
                         st.success(
                             f"Meeting analysis completed! Meeting ID: {meeting_id}"
@@ -216,14 +223,8 @@ if page == "Meeting Overview":
                     except Exception as e:
 
                         st.error(
-                            f"AI processing failed: {e}"
+                            f"Meeting summary generation failed: {e}"
                         )
-
-            else:
-
-                st.warning(
-                    "Please provide a meeting transcript."
-                )
 
 
     # ---------------- DISPLAY RESULTS ----------------
@@ -233,74 +234,50 @@ if page == "Meeting Overview":
         result = st.session_state["meeting_result"]
 
         st.divider()
-
-        st.header("Meeting Summary")
+        st.subheader("Meeting Summary")
 
         st.write(
-            result.get(
-                "meeting_summary",
-                "No summary available."
-            )
+            result.get("meeting_summary", "No summary available.")
         )
-
 
         # DISCUSSION POINTS
-
         st.subheader("Discussion Points")
 
-        discussion_points = result.get(
-            "discussion_points",
-            []
-        )
+        discussion_points = result.get("discussion_points", [])
 
-        for point in discussion_points:
-
-            st.markdown(
-                f"- {point}"
-            )
-
+        if discussion_points:
+            for point in discussion_points:
+                st.markdown(f"- {point}")
+        else:
+            st.info("No discussion points were identified.")
 
         # DECISIONS
-
         st.subheader("Decisions")
 
-        decisions = result.get(
-            "decisions",
-            []
-        )
+        decisions = result.get("decisions", [])
 
-        for decision in decisions:
-
-            st.markdown(
-                f"- {decision}"
-            )
-
+        if decisions:
+            for decision in decisions:
+                st.markdown(f"- {decision}")
+        else:
+            st.info("No decisions were identified.")
 
         # ACTION ITEMS
-
         st.subheader("Action Items")
 
-        action_items = result.get(
-            "action_items",
-            []
-        )
+        action_items = result.get("action_items", [])
 
         if action_items:
-
-            df = pd.DataFrame(
-                action_items
-            )
-
+            df = pd.DataFrame(action_items)
             st.dataframe(
                 df,
                 use_container_width=True
             )
-
         else:
+            st.info("No action items were identified.")
 
-            st.info(
-                "No action items were identified."
-            )
+    else:
+        st.info("Upload a meeting recording or enter a transcript to get started.")
 
 
 # ---------------- ACTION ITEMS ----------------
@@ -386,6 +363,12 @@ elif page == "Action Items":
             st.session_state[
                 "action_items_data"
             ] = updated_items
+
+            # Keep the overview and exports synchronized with edited items.
+            if "meeting_result" in st.session_state:
+                st.session_state["meeting_result"][
+                    "action_items"
+                ] = updated_items
 
             meeting_id = st.session_state.get("meeting_id")
 
@@ -633,30 +616,29 @@ elif page == "Meeting History":
             selected_meeting = load_meeting(selected_id)
 
             if selected_meeting:
+                # Database loader returns decoded lists for JSON fields.
                 st.session_state["meeting_result"] = {
-                    "meeting_summary": selected_meeting.get(
-                        "summary", ""
+                    "meeting_summary": selected_meeting.get("summary", ""),
+                    "discussion_points": selected_meeting.get(
+                        "discussion_points", []
                     ),
-                    "discussion_points": [],
-                    "decisions": json.loads(
-                        selected_meeting.get("decisions") or "[]"
-                    ),
-                    "action_items": json.loads(
-                        selected_meeting.get("action_items") or "[]"
-                    )
+                    "decisions": selected_meeting.get("decisions", []),
+                    "action_items": selected_meeting.get("action_items", [])
                 }
 
                 st.session_state["meeting_id"] = selected_meeting["id"]
                 st.session_state["transcript"] = selected_meeting.get(
                     "transcript", ""
                 )
-                st.session_state["action_items_data"] = (
-                    st.session_state["meeting_result"]["action_items"]
+                st.session_state["action_items_data"] = selected_meeting.get(
+                    "action_items", []
                 )
+
+                # Reset the transcript editor so it displays the loaded meeting.
+                st.session_state.pop("editable_transcript", None)
 
                 st.success(
                     f"Meeting {selected_id} loaded successfully!"
                 )
 
                 st.rerun()
-            
